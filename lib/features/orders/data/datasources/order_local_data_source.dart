@@ -67,6 +67,17 @@ class OrderLocalDataSource {
     return null;
   }
 
+  /// Caches the internal user status for a user ID.
+  Future<void> cacheIsInternalUser(int userId, bool isInternal) async {
+    await _ordersBox.put('internal_user_$userId', isInternal);
+  }
+
+  /// Retrieves the cached internal user status, or null if unset.
+  bool? getCachedIsInternalUser(int userId) {
+    final val = _ordersBox.get('internal_user_$userId');
+    return val is bool ? val : null;
+  }
+
   /// Returns true if cached orders exist.
   bool get hasCachedOrders => _ordersBox.isNotEmpty;
 }

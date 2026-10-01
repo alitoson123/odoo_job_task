@@ -91,17 +91,24 @@ class OrderRepository {
     }
   }
 
-  /// Checks whether a user belongs to `base.group_user` (internal user).
+  /// Checks whether a user belongs to `base.group_user`, caching permission for offline use.
   Future<Either<Failure, bool>> checkIsInternalUser(int userId) async {
+    if (_networkInfo != null && !await _networkInfo.isConnected) {
+      return _readCachedIsInternalUser(userId);
+    }
     try {
       final dynamic res = await _odooClient.callRpc(
         model: 'res.users',
         method: 'has_group',
         body: {'ids': [userId], 'group_ext_id': 'base.group_user'},
       );
-      if (res is bool) return Right(res);
+      if (res is bool) {
+        await _localDataSource?.cacheIsInternalUser(userId, res);
+        return Right(res);
+      }
       return const Left(ServerFailure('Invalid response from server.'));
     } on DioException catch (e) {
+      if (e.isNetworkError) return _readCachedIsInternalUser(userId);
       return Left(ServerFailure.fromDioError(e));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
@@ -135,5 +142,12 @@ class OrderRepository {
       return Right(c);
     }
     return const Left(ServerFailure('Offline: No cached details for order.'));
+  }
+
+  Either<Failure, bool> _readCachedIsInternalUser(int userId) {
+    final cached = _localDataSource?.getCachedIsInternalUser(userId);
+    if (cached != null) return Right(cached);
+    if (_localDataSource?.hasCachedOrders == true) return const Right(true);
+    return const Left(ServerFailure('Offline: User permissions unavailable.'));
   }
 }

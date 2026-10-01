@@ -85,5 +85,11 @@ void main() {
       expect(result?.lines.length, equals(1));
       expect(result?.lines.first.productName, equals('Desk'));
     });
+
+    test('cacheIsInternalUser and getCachedIsInternalUser round-trip correctly', () async {
+      expect(dataSource.getCachedIsInternalUser(5), isNull);
+      await dataSource.cacheIsInternalUser(5, true);
+      expect(dataSource.getCachedIsInternalUser(5), isTrue);
+    });
   });
 }
