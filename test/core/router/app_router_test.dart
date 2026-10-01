@@ -6,10 +6,13 @@ void main() {
     test('defines correct static paths', () {
       expect(AppRouter.login, equals('/'));
       expect(AppRouter.home, equals('/home'));
+      expect(AppRouter.customerDetails, equals('/customer-details'));
+      expect(AppRouter.orders, equals('/orders'));
+      expect(AppRouter.orderDetails, equals('/order-details'));
     });
 
     test('router has defined routes', () {
-      expect(AppRouter.router.configuration.routes.length, equals(2));
+      expect(AppRouter.router.configuration.routes.length, equals(5));
     });
   });
 }

@@ -38,7 +38,7 @@ class AuthRepository {
           'domain': [
             ['login', '=', cleanUsername]
           ],
-          'fields': ['id', 'name', 'login'],
+          'fields': ['id', 'name', 'login', 'share'],
           'limit': 1,
         },
         apiKey: cleanKey,
@@ -51,6 +51,7 @@ class AuthRepository {
         await _secureStorage.saveCredentials(
           username: cleanUsername,
           apiKey: cleanKey,
+          userId: user.id,
         );
         return Right(user);
       }
@@ -71,9 +72,10 @@ class AuthRepository {
   }
 
   /// Retrieves previously saved credentials if present.
-  Future<({String? username, String? apiKey})> getSavedCredentials() async {
+  Future<({String? username, String? apiKey, int? userId})> getSavedCredentials() async {
     final username = await _secureStorage.getUsername();
     final apiKey = await _secureStorage.getApiKey();
-    return (username: username, apiKey: apiKey);
+    final userId = await _secureStorage.getUserId();
+    return (username: username, apiKey: apiKey, userId: userId);
   }
 }

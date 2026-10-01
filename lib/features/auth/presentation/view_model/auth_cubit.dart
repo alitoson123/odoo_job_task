@@ -20,7 +20,11 @@ class AuthCubit extends Cubit<AuthState> {
         final username = saved.username ?? 'User';
         emit(
           AuthSuccess(
-            user: UserModel(id: 0, name: username, login: username),
+            user: UserModel(
+              id: saved.userId ?? 0,
+              name: username,
+              login: username,
+            ),
             apiKey: saved.apiKey!,
           ),
         );

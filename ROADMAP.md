@@ -56,12 +56,12 @@ You are helping build a **Flutter mobile app for a sales team that integrates wi
 | 1 | Set up Odoo trial, API key, sample data | Done |
 | 2 | Test the API outside Flutter (Python) | Done |
 | 3 | Create Flutter project, packages, folders | Done |
-| 4 | Odoo client + Auth repository (login logic) | In progress |
-| 5 | Login screen (UI + BLoC + secure storage) | Todo |
-| 6 | Customer list + search | Todo |
-| 7 | Customer details + phone update | Todo |
-| 8 | Sales orders (list, details, confirm) for internal users | Todo |
-| 9 | Offline (cache + sync queue) | Todo |
+| 4 | Odoo client + Auth repository (login logic) | Done |
+| 5 | Login screen (UI + Cubit + secure storage) | Done |
+| 6 | Customer list + search | Done |
+| 7 | Customer details + phone update | Done |
+| 8 | Sales orders (list, details, confirm) for internal users | Done |
+| 9 | Offline (cache + sync queue) | Done |
 | 10 | Polish, README, delivery | Todo |
 
 **Priority order if time runs short:** 4, 5, 6, 7, 8, 10, 9.
@@ -255,8 +255,8 @@ POST /json/2/sale.order/action_confirm
 - Conflict policy: **last write wins**. Document it in the README.
 
 **Definition of Done:**
-- [ ] With airplane mode on, the app opens and shows cached customers
-- [ ] A phone edit made offline appears in Odoo after connectivity returns
+- [x] With airplane mode on, the app opens and shows cached customers
+- [x] A phone edit made offline appears in Odoo after connectivity returns
 
 ---
 

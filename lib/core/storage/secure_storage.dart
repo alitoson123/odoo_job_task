@@ -4,19 +4,24 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 class SecureStorage {
   static const String _keyUsername = 'auth_username';
   static const String _keyApiKey = 'auth_api_key';
+  static const String _keyUserId = 'auth_user_id';
 
   final FlutterSecureStorage _storage;
 
   const SecureStorage([FlutterSecureStorage? storage])
     : _storage = storage ?? const FlutterSecureStorage();
 
-  /// Saves the authenticated username and API key into encrypted hardware storage.
+  /// Saves the authenticated username, API key, and optional user ID into encrypted storage.
   Future<void> saveCredentials({
     required String username,
     required String apiKey,
+    int? userId,
   }) async {
     await _storage.write(key: _keyUsername, value: username.trim());
     await _storage.write(key: _keyApiKey, value: apiKey.trim());
+    if (userId != null) {
+      await _storage.write(key: _keyUserId, value: userId.toString());
+    }
   }
 
   /// Retrieves the saved username from storage, or null if unset.
@@ -29,10 +34,17 @@ class SecureStorage {
     return await _storage.read(key: _keyApiKey);
   }
 
+  /// Retrieves the saved user ID from storage, or null if unset.
+  Future<int?> getUserId() async {
+    final val = await _storage.read(key: _keyUserId);
+    return val != null ? int.tryParse(val) : null;
+  }
+
   /// Clears stored credentials upon logout or invalidation.
   Future<void> clearCredentials() async {
     await _storage.delete(key: _keyUsername);
     await _storage.delete(key: _keyApiKey);
+    await _storage.delete(key: _keyUserId);
   }
 
   /// Returns true if valid credentials exist in storage.

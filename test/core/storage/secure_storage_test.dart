@@ -11,35 +11,41 @@ void main() {
   });
 
   group('SecureStorage', () {
-    test('saveCredentials stores trimmed username and apiKey', () async {
+    test('saveCredentials stores trimmed username and apiKey and userId', () async {
       await secureStorage.saveCredentials(
         username: ' admin ',
         apiKey: ' key123 ',
+        userId: 42,
       );
 
       final username = await secureStorage.getUsername();
       final apiKey = await secureStorage.getApiKey();
+      final userId = await secureStorage.getUserId();
       final hasCreds = await secureStorage.hasCredentials();
 
       expect(username, equals('admin'));
       expect(apiKey, equals('key123'));
+      expect(userId, equals(42));
       expect(hasCreds, isTrue);
     });
 
-    test('clearCredentials removes stored values', () async {
+    test('clearCredentials removes stored values including userId', () async {
       await secureStorage.saveCredentials(
         username: 'admin',
         apiKey: 'key123',
+        userId: 42,
       );
 
       await secureStorage.clearCredentials();
 
       final username = await secureStorage.getUsername();
       final apiKey = await secureStorage.getApiKey();
+      final userId = await secureStorage.getUserId();
       final hasCreds = await secureStorage.hasCredentials();
 
       expect(username, isNull);
       expect(apiKey, isNull);
+      expect(userId, isNull);
       expect(hasCreds, isFalse);
     });
   });

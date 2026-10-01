@@ -12,7 +12,7 @@ void main() {
           home: Scaffold(
             body: LoginForm(
               isLoading: false,
-              onSubmit: (_, __) => submitted = true,
+              onSubmit: (_, _) => submitted = true,
             ),
           ),
         ),
@@ -59,7 +59,7 @@ void main() {
           home: Scaffold(
             body: LoginForm(
               isLoading: false,
-              onSubmit: (_, __) {},
+              onSubmit: (_, _) {},
             ),
           ),
         ),

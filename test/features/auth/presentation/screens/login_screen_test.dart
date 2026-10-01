@@ -18,8 +18,8 @@ class MockAuthRepoForScreen extends Fake implements AuthRepository {
   }
 
   @override
-  Future<({String? username, String? apiKey})> getSavedCredentials() async {
-    return (username: null, apiKey: null);
+  Future<({String? username, String? apiKey, int? userId})> getSavedCredentials() async {
+    return (username: null, apiKey: null, userId: null);
   }
 
   @override

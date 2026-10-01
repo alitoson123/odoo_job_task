@@ -7,6 +7,7 @@ import 'features/auth/presentation/view_model/auth_cubit.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initDependencies();
+  await sl<AuthCubit>().checkAuth();
   runApp(const OdooSalesApp());
 }
 

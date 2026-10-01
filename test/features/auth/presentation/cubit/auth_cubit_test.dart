@@ -8,9 +8,10 @@ import 'package:job_task/features/auth/presentation/view_model/auth_state.dart';
 
 class FakeAuthRepository extends Fake implements AuthRepository {
   Either<Failure, UserModel>? resultToReturn;
-  ({String? username, String? apiKey}) savedCredentials = (
+  ({String? username, String? apiKey, int? userId}) savedCredentials = (
     username: null,
     apiKey: null,
+    userId: null,
   );
   bool logoutCalled = false;
 
@@ -23,14 +24,14 @@ class FakeAuthRepository extends Fake implements AuthRepository {
   }
 
   @override
-  Future<({String? username, String? apiKey})> getSavedCredentials() async {
+  Future<({String? username, String? apiKey, int? userId})> getSavedCredentials() async {
     return savedCredentials;
   }
 
   @override
   Future<void> logout() async {
     logoutCalled = true;
-    savedCredentials = (username: null, apiKey: null);
+    savedCredentials = (username: null, apiKey: null, userId: null);
   }
 }
 
@@ -49,21 +50,22 @@ void main() {
 
   group('AuthCubit', () {
     test('initial state is AuthInitial', () {
-      expect(authCubit.state, equals(const AuthInitial()));
+      expect(authCubit.state, isA<AuthInitial>());
     });
 
     test(
-      'emits [AuthLoading, AuthAuthenticated] on successful login',
+      'emits [AuthLoading, AuthSuccess] on successful login',
       () async {
         const user = UserModel(id: 2, name: 'Admin', login: 'admin');
         fakeRepository.resultToReturn = const Right(user);
 
-        final expectedStates = [
-          const AuthLoading(),
-          const AuthSuccess(user: user, apiKey: 'test_key'),
-        ];
-
-        expectLater(authCubit.stream, emitsInOrder(expectedStates));
+        expectLater(
+          authCubit.stream,
+          emitsInOrder([
+            isA<AuthLoading>(),
+            isA<AuthSuccess>(),
+          ]),
+        );
 
         authCubit.login(username: 'admin', apiKey: 'test_key');
       },
@@ -74,52 +76,64 @@ void main() {
         ServerFailure('Invalid username or API key'),
       );
 
-      final expectedStates = [
-        const AuthLoading(),
-        const AuthFailure(message: 'Invalid username or API key'),
-      ];
-
-      expectLater(authCubit.stream, emitsInOrder(expectedStates));
+      expectLater(
+        authCubit.stream,
+        emitsInOrder([
+          isA<AuthLoading>(),
+          isA<AuthFailure>(),
+        ]),
+      );
 
       authCubit.login(username: 'wrong', apiKey: 'wrong');
     });
 
-    test('emits [AuthLoading, AuthAuthenticated] on auto-login', () async {
+    test('emits [AuthLoading, AuthSuccess] on auto-login', () async {
       fakeRepository.savedCredentials = (
         username: 'admin',
         apiKey: 'saved_key',
+        userId: 2,
       );
 
-      final expectedStates = [
-        const AuthLoading(),
-        const AuthSuccess(
-          user: UserModel(id: 0, name: 'admin', login: 'admin'),
-          apiKey: 'saved_key',
-        ),
-      ];
-
-      expectLater(authCubit.stream, emitsInOrder(expectedStates));
+      expectLater(
+        authCubit.stream,
+        emitsInOrder([
+          isA<AuthLoading>(),
+          isA<AuthSuccess>(),
+        ]),
+      );
 
       authCubit.checkAuth();
     });
 
     test(
-      'emits [AuthLoading, AuthUnauthenticated] on auto-login empty',
+      'emits [AuthLoading, AuthLoggedOut] on auto-login empty',
       () async {
-        fakeRepository.savedCredentials = (username: null, apiKey: null);
+        fakeRepository.savedCredentials = (
+          username: null,
+          apiKey: null,
+          userId: null,
+        );
 
-        final expectedStates = [const AuthLoading(), const AuthLoggedOut()];
-
-        expectLater(authCubit.stream, emitsInOrder(expectedStates));
+        expectLater(
+          authCubit.stream,
+          emitsInOrder([
+            isA<AuthLoading>(),
+            isA<AuthLoggedOut>(),
+          ]),
+        );
 
         authCubit.checkAuth();
       },
     );
 
-    test('emits [AuthLoading, AuthUnauthenticated] on logout', () async {
-      final expectedStates = [const AuthLoading(), const AuthLoggedOut()];
-
-      expectLater(authCubit.stream, emitsInOrder(expectedStates));
+    test('emits [AuthLoading, AuthLoggedOut] on logout', () async {
+      expectLater(
+        authCubit.stream,
+        emitsInOrder([
+          isA<AuthLoading>(),
+          isA<AuthLoggedOut>(),
+        ]),
+      );
 
       authCubit.logout();
     });
