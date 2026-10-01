@@ -74,39 +74,13 @@ Offline is a bonus. Even if the full sync queue is not finished, implement at le
 | Purpose | Package |
 |---------|---------|
 | HTTP client | `dio` |
-| State management | `flutter_bloc`, `equatable` |
+| State management | `flutter_cubit` |
 | Secure credential storage | `flutter_secure_storage` |
 | Local cache | `hive_flutter` |
 | Connectivity | `connectivity_plus` |
 
 ---
 
-## 4. Project Structure
-
-```
-lib/
-├── core/
-│   ├── network/
-│   │   └── odoo_client.dart
-│   ├── storage/
-│   │   ├── secure_storage.dart
-│   │   └── cache_service.dart
-│   └── utils/
-│       └── connectivity_service.dart
-├── features/
-│   ├── auth/
-│   │   ├── data/           (auth_repository.dart)
-│   │   └── presentation/   (bloc/, login_screen.dart)
-│   ├── customers/
-│   │   ├── data/           (customer_model.dart, customer_repository.dart)
-│   │   └── presentation/   (bloc/, customer_list_screen.dart, customer_details_screen.dart)
-│   └── sales_orders/
-│       ├── data/           (order_model.dart, order_line_model.dart, order_repository.dart)
-│       └── presentation/   (bloc/, orders_screen.dart, order_details_screen.dart)
-└── main.dart
-```
-
----
 
 ## 5. Step-by-Step Details
 
