@@ -10,6 +10,7 @@ import '../widgets/confirm_order_dialog.dart';
 import '../widgets/order_confirm_button.dart';
 import '../widgets/order_header_card.dart';
 import '../widgets/order_lines_card.dart';
+import '../widgets/order_state_views.dart';
 import '../widgets/order_totals_card.dart';
 
 /// Screen displaying complete details of an Odoo sales order and products.
@@ -53,17 +54,30 @@ class _OrderDetailsScaffold extends StatelessWidget {
         }
       },
       builder: (context, state) {
+        if (state is OrderDetailsLoading) {
+          return Scaffold(
+            appBar: AppBar(title: Text(initialOrder.name)),
+            body: const Center(child: CircularProgressIndicator()),
+          );
+        }
+        if (state is OrderDetailsFailure) {
+          return Scaffold(
+            appBar: AppBar(title: Text(initialOrder.name)),
+            body: OrderErrorView(
+              message: state.message,
+              onRetry: () => context.read<OrderDetailsCubit>().loadDetails(initialOrder.id),
+            ),
+          );
+        }
+
         final order = _resolveOrder(state);
         final lines = _resolveLines(state);
-        final isLoading = state is OrderDetailsLoading;
         final isConfirming = state is OrderConfirming;
         final isOffline = state is OrderDetailsSuccess && state.isOffline;
 
         return Scaffold(
           appBar: AppBar(title: Text(order.name)),
-          body: isLoading
-              ? const Center(child: CircularProgressIndicator())
-              : _buildContent(order, lines, isOffline),
+          body: _buildContent(order, lines, isOffline),
           bottomNavigationBar: order.isConfirmable && !isOffline
               ? OrderConfirmButton(
                   isLoading: isConfirming,

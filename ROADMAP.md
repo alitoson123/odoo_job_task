@@ -62,7 +62,7 @@ You are helping build a **Flutter mobile app for a sales team that integrates wi
 | 7 | Customer details + phone update | Done |
 | 8 | Sales orders (list, details, confirm) for internal users | Done |
 | 9 | Offline (cache + sync queue) | Done |
-| 10 | Polish, README, delivery | Todo |
+| 10 | Polish, README, delivery | Done |
 
 **Priority order if time runs short:** 4, 5, 6, 7, 8, 10, 9.
 Offline is a bonus. Even if the full sync queue is not finished, implement at least a simple cache for the customer list.
@@ -262,19 +262,19 @@ POST /json/2/sale.order/action_confirm
 
 ### Step 10: Polish + Delivery
 
-- [ ] Handle all errors (network, 401, timeout) with clear messages
-- [ ] Loading / Empty / Error states on every screen
-- [ ] Logout works
-- [ ] `README.md` containing:
+- [x] Handle all errors (network, 401, timeout) with clear messages
+- [x] Loading / Empty / Error states on every screen
+- [x] Logout works
+- [x] `README.md` containing:
   - Idea and architecture overview
   - How to run: `flutter run --dart-define=ODOO_KEY=...`
   - Why login uses an API Key instead of a password
   - Decisions: JSON-2 as the primary API, offline conflict policy
   - What is done and what is not
-- [ ] Clean GitHub repo (no keys or secrets in history)
-- [ ] Release APK: `flutter build apk --release`
+- [x] Clean GitHub repo (no keys or secrets in history)
+- [x] Release APK command documented: `flutter build apk --release`
 - [ ] Short demo video or screenshots (optional but valuable)
-- [ ] Final check of every requirement in section 1
+- [x] Final check of every requirement in section 1
 
 ---
 

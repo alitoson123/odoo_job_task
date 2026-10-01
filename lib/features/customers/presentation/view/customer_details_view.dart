@@ -7,6 +7,7 @@ import '../view_model/customer_details_cubit.dart';
 import '../view_model/customer_details_state.dart';
 import '../widgets/customer_info_tile.dart';
 import '../widgets/customer_phone_card.dart';
+import '../widgets/customer_state_views.dart';
 
 /// Screen displaying customer contact info and allowing phone updates.
 class CustomerDetailsView extends StatelessWidget {
@@ -32,9 +33,7 @@ class _CustomerDetailsScaffold extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Customer Details'),
-      ),
+      appBar: AppBar(title: const Text('Customer Details')),
       body: BlocConsumer<CustomerDetailsCubit, CustomerDetailsState>(
         listener: (context, state) {
           if (state is CustomerPhoneUpdateSuccess) {
@@ -58,6 +57,18 @@ class _CustomerDetailsScaffold extends StatelessWidget {
           }
         },
         builder: (context, state) {
+          if (state is CustomerDetailsLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (state is CustomerDetailsFailure) {
+            return CustomerErrorView(
+              message: state.message,
+              onRetry: () {
+                context.read<CustomerDetailsCubit>().loadDetails(fallbackCustomer.id);
+              },
+            );
+          }
+
           final customer = _resolveCustomer(state);
           final isUpdating = state is CustomerPhoneUpdating;
           final isOffline = state is CustomerDetailsSuccess && state.isOffline;

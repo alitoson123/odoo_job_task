@@ -5,6 +5,7 @@ import '../../../../core/router/app_router.dart';
 import '../../../../core/services/service_locator.dart';
 import '../../../../core/widgets/offline_banner.dart';
 import '../../../auth/presentation/view_model/auth_cubit.dart';
+import '../../../auth/presentation/widgets/logout_dialog.dart';
 import '../../data/models/customer_model.dart';
 import '../view_model/customer_cubit.dart';
 import '../view_model/customer_state.dart';
@@ -39,9 +40,14 @@ class _CustomerListScaffold extends StatelessWidget {
           IconButton(
             icon: const Icon(Icons.logout),
             tooltip: 'Logout',
-            onPressed: () {
-              context.read<AuthCubit>().logout();
-              context.go(AppRouter.login);
+            onPressed: () async {
+              final confirm = await LogoutDialog.show(context);
+              if (confirm && context.mounted) {
+                await context.read<AuthCubit>().logout();
+                if (context.mounted) {
+                  context.go(AppRouter.login);
+                }
+              }
             },
           ),
         ],

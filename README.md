@@ -4,53 +4,71 @@ A clean, production-grade Flutter application for sales teams that integrates di
 
 ---
 
-## Architecture Overview
+## Architecture & Idea Overview
 
-The project adheres to Clean Architecture with a Feature-First structure:
-- **`core/`**: Centralized services, networking (`OdooClient`), storage (`SecureStorage`, `HiveStorage`), routing (`AppRouter`), error handling (`Failure`), and shared widgets (`OfflineBanner`).
-- **`features/auth/`**: Authentication, credential validation, session expiry management, and secure token persistence.
-- **`features/customers/`**: Customer listing with search, details view, phone number updates, offline caching, and automatic synchronization queue.
-- **`features/orders/`**: Sales orders list, quotation inspection, order confirmation, and role verification (`base.group_user`).
+The application is built to empower mobile sales representatives with quick access to their customer directory, order statuses, and customer contact management in both online and field/offline scenarios.
+
+The codebase strictly follows **Clean Architecture** combined with a **Feature-First structure**:
+- **`core/`**: Reusable core infrastructure, including:
+  - `services/`: `OdooClient` (JSON-2 HTTP client with Bearer authentication), `NetworkInfo` (connectivity observation), and `ServiceLocator` (GetIt DI).
+  - `storage/`: `SecureStorage` (encrypted keychain/keystore token persistence) and `HiveStorage` (local offline cache and operations queue).
+  - `router/`: Centralized declarative routing via `GoRouter` with auth-guard redirection.
+  - `errors/`: Unified failure abstraction (`Failure`, `ServerFailure`, `CancelFailure`) mapping HTTP codes and Dio errors to human-readable messages.
+  - `widgets/`: Shared UI components, such as `OfflineBanner`.
+- **`features/auth/`**: Authentication lifecycle, credential validation against Odoo, secure session storage, and logout.
+- **`features/customers/`**: Customer listing with live search, details view, phone editing, local caching, and synchronization queue.
+- **`features/orders/`**: Sales order inspection (list & details), quotation confirmation workflow, and internal user permission check (`base.group_user`).
+
+---
+## What is Done 
+
+### ✅ What is Done
+1. **Authentication**:
+   - Secure login with Odoo username and API key.
+   - Credentials stored in encrypted secure storage (`flutter_secure_storage`).
+   - Auto-login on app restart if valid credentials exist.
+   - Logout and session expiration handling (401/403).
+2. **Customer Directory**:
+   - Customer list fetched with `customer_rank > 0` sorted alphabetically.
+   - Debounced search filtering by customer name.
+   - Loading, Empty, and Error states with retry on failure.
+3. **Customer Details & Edit**:
+   - Contact and multi-part address inspection.
+   - Phone number editing with instant optimistic local update and Odoo write (`res.partner/write`).
+4. **Sales Orders (Internal Users Only)**:
+   - Authorization check verifying if the user belongs to `base.group_user`.
+   - Sales orders list displaying order number, partner, date, and status.
+   - Order detail view displaying itemized lines, quantities, unit prices, and totals.
+   - Quotation confirmation action (`sale.order/action_confirm`) updating state to confirmed (`sale`).
+5. **Offline Mode & Auto-Sync**:
+   - Full read cache in Hive for customers and sales orders.
+   - Clear "Offline mode" banner when browsing without internet.
+   - "Pending sync" badge for customers with uncommitted changes.
+   - Auto-sync service monitoring network connectivity (`connectivity_plus`) and executing queued writes when connection is restored.
+
 
 ---
 
-## Offline Handling & Synchronization (Step 9)
 
-### 1. Local Cache (`Hive`)
-- **Customers Box (`customers`)**: Successful customer fetches are cached in Hive. When the device is offline or requests fail due to network errors, data is served from local cache with an **Offline mode** banner.
-- **Sales Orders Box (`orders`)**: Sales orders and detailed order items are cached locally for offline browsing.
+## Architectural & Technical Decisions
 
-### 2. Offline Sync Queue (`pending_ops`)
-- When customer contact information (e.g. phone number) is edited offline:
-  1. The local cache in `customers` is updated immediately for an instant optimistic UI update.
-  2. The edit operation is stored in the `pending_ops` Hive box:
-     ```json
-     {
-       "partnerId": 12,
-       "field": "phone",
-       "value": "+1 555 0199",
-       "timestamp": 1727827200000
-     }
-     ```
-  3. A **Pending sync** indicator is displayed on that customer across the app.
+### 1. Why Login Uses an API Key Instead of a Password
+- **Security & Scoping**: Odoo API Keys (introduced natively for RPC access) can be restricted, monitored, and revoked independently of the user's master account password without resetting global credentials.
+- **Direct RPC Protocol Compatibility**: Odoo JSON-2 endpoints authenticate via HTTP headers (`Authorization: bearer <API_KEY>`), avoiding the need for multi-step cookie/session management or XML-RPC password transmission over every payload.
+- **Secure On-Device Storage**: The API key and authenticated username are persisted securely in Android Keystore / iOS Keychain via `flutter_secure_storage`.
 
-### 3. Background Synchronization (`connectivity_plus`)
-- `CustomerSyncService` continuously listens to network connectivity.
-- When connectivity is restored:
-  - Operations in `pending_ops` are processed in FIFO order (`res.partner/write`).
-  - Succeeded operations are removed from the queue.
-  - Operations that encounter network interruptions are retained for subsequent sync attempts.
-  - Active cubits automatically refresh upon sync completion.
+### 2. JSON-2 as the Primary API
+- Odoo 18/20 offers the modern `/json/2/<model>/<method>` REST-like JSON RPC specification.
+- Unlike legacy XML-RPC, JSON-2 operates natively with standard JSON request/response formats, eliminates heavy XML serialization overhead, and provides faster round trips with structured status payloads.
 
-### 4. Conflict Policy: Last Write Wins
-- Offline updates adhere to a **Last Write Wins** resolution policy.
-- Local modifications update the cache instantly. When connectivity returns, operations are committed to Odoo in chronological timestamp order, ensuring the latest user update is applied.
+### 3. Offline Handling & Conflict Policy
+- **Local Cache (`Hive`)**: Successful reads for customers (`customers` box) and sales orders (`orders` box) are persisted in local fast storage. If the device loses connection, cached data is displayed alongside an **Offline mode** banner.
+- **Sync Queue (`pending_ops`)**: Edits performed while offline update the local cache immediately (optimistic UI) and queue an operation into the `pending_ops` Hive box.
+- **Conflict Resolution: Last Write Wins**: When internet connectivity returns, `CustomerSyncService` executes pending writes in strict chronological order. The last edit committed by the user takes precedence.
 
----
 
-## Running the Application
 
-Pass your test Odoo API Key using `--dart-define`:
-```bash
-flutter run --dart-define=ODOO_KEY=your_rpc_api_key_here
-```
+
+
+
+
